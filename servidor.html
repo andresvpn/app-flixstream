@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>FlixStream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #1A1A1A;
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #loaderContainer {
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .flixstream-logo {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .flix {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .stream {
+      color: #27ae60;
+      font-weight: 700;
+    }
+
+    .pulse-loader {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      height: 50px;
+      align-items: flex-end;
+    }
+
+    .pulse-bar {
+      width: 12px;
+      height: 10px;
+      background: #27ae60;
+      border-radius: 6px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .pulse-bar:nth-child(1) { animation-delay: 0s; height: 20px; }
+    .pulse-bar:nth-child(2) { animation-delay: 0.1s; height: 30px; }
+    .pulse-bar:nth-child(3) { animation-delay: 0.2s; height: 40px; }
+    .pulse-bar:nth-child(4) { animation-delay: 0.3s; height: 50px; }
+    .pulse-bar:nth-child(5) { animation-delay: 0.4s; height: 40px; }
+    .pulse-bar:nth-child(6) { animation-delay: 0.5s; height: 30px; }
+    .pulse-bar:nth-child(7) { animation-delay: 0.6s; height: 20px; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scaleY(0.5); opacity: 0.3; }
+      50% { transform: scaleY(1); opacity: 1; }
+    }
+
+    .status-text {
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.8);
+      text-transform: uppercase;
+      margin-top: 20px;
+    }
+
+    #videoIframe {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loaderContainer">
+   
+    
+    <div class="pulse-loader">
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+    </div>
+    
+    <div class="status-text">CARGANDO SERVIDOR</div>
+  </div>
+
+  <iframe id="videoIframe" frameborder="0" title="FlixStream Reproductor"></iframe>
+
+  <script>
+    const loader = document.getElementById("loaderContainer");
+    const statusText = document.querySelector(".status-text");
+
+    let cierreEjecutado = false;
+
+    function volverAtras() {
+      if (cierreEjecutado) return;
+      cierreEjecutado = true;
+
+      loader.style.display = "none";
+
+      setTimeout(() => {
+        window.history.back();
+      }, 0);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const videoUrl = params.get("v");
+
+    function esUrlValida(url) {
+      try {
+        const u = new URL(url);
+        return ["http:", "https:"].includes(u.protocol);
+      } catch {
+        return false;
+      }
+    }
+
+    if (videoUrl && esUrlValida(videoUrl)) {
+      document.getElementById('videoIframe').src = videoUrl;
+
+      setTimeout(() => {
+        volverAtras();
+      }, 10000);
+    } else {
+      statusText.textContent = "ENLACE NO DISPONIBLE";
+
+      setTimeout(() => {
+        volverAtras();
+      }, 1000);
+    }
+  </script>
+
+</body>
+</html>

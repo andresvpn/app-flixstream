@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>FlixStream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #1A1A1A;
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #loaderContainer {
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .pulse-loader {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      height: 50px;
+      align-items: flex-end;
+    }
+
+    .pulse-bar {
+      width: 12px;
+      height: 10px;
+      background: #27ae60;
+      border-radius: 6px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .pulse-bar:nth-child(1) { animation-delay: 0s; height: 20px; }
+    .pulse-bar:nth-child(2) { animation-delay: 0.1s; height: 30px; }
+    .pulse-bar:nth-child(3) { animation-delay: 0.2s; height: 40px; }
+    .pulse-bar:nth-child(4) { animation-delay: 0.3s; height: 50px; }
+    .pulse-bar:nth-child(5) { animation-delay: 0.4s; height: 40px; }
+    .pulse-bar:nth-child(6) { animation-delay: 0.5s; height: 30px; }
+    .pulse-bar:nth-child(7) { animation-delay: 0.6s; height: 20px; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scaleY(0.5); opacity: 0.3; }
+      50% { transform: scaleY(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loaderContainer">    
+    <div class="pulse-loader">
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+      <div class="pulse-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 3000);
+  </script>
+
+</body>
+</html>
