@@ -172,7 +172,7 @@ $paginatedMovies = array_slice($filteredMovies, ($current_page-1)*ITEMS_PER_PAGE
 $allGenres = ['Acción', 'Aventura', 'Animación', 'Comedia', 'Crimen', 'Documental', 
              'Drama', 'Familia', 'Fantasía', 'Historia', 'Terror', 'Música', 
              'Misterio', 'Romance', 'Ciencia ficción', 'TV Movie', 'Thriller', 
-             'Guerra', 'Western'];
+             'Guerra', 'Suspense', 'Western'];
 ?>
 <!DOCTYPE html>
 <html lang="es">

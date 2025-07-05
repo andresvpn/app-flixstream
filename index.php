@@ -186,6 +186,10 @@ $moviesPerPage = 48;
         @media (min-width: 1200px) {
             .col.s4 {
                 width: 16.666% !important;
+                margin-left: 0;
+            }
+            .row .col {
+                padding: 0 8px;
             }
             :focus-visible {
                 outline: 3px solid #20bf6b !important;
@@ -202,6 +206,14 @@ $moviesPerPage = 48;
             .sidenav li a:focus-visible {
                 background-color: rgba(32, 191, 107, 0.2) !important;
                 transform: scale(1.02);
+            }
+            .movie-container {
+                height: 100%;
+            }
+            .movie-container img {
+                height: 100%;
+                width: 100%;
+                object-fit: cover;
             }
         }
 
@@ -231,7 +243,7 @@ $moviesPerPage = 48;
             <nav class="nav-extended black">
                 <div class="nav-wrapper">
                     <a href="#" data-target="mobile-demo" class="sidenav-trigger left"><i class="material-icons">menu</i></a>
-                    <span class="brand-logo center">Flix<span class="green-text">Stream</span></span>
+                    <span class="brand-logo center">Chunito<span class="green-text">Films</span></span>
                     <span class="right hide-on-med-and-down" style="width: 48px; height: 48px;"></span>
                 </div>
 
@@ -246,11 +258,13 @@ $moviesPerPage = 48;
         <ul class="sidenav grey darken-4" id="mobile-demo">
             <li>
                 <div class="sidenav-header">
-                    <h4>Flix<span class="green-text">Stream</span></h4>
+                    <h4>Chunito<span class="green-text">Films</span></h4>
                 </div>
             </li>
             <li><a id="menu-buscador" href="/search.php" tabindex="0"><i class="bi bi-search"></i> Buscar Película</a></li>
-            <li><a id="menu-item" href="https://t.me/FlixStream_Oficial/" tabindex="0"><i class="bi bi-telegram" style="color: white;"></i> Canal Oficial</a></li>       
+            <!--
+            <li><a id="menu-item" href="/version.php" tabindex="0"><i class="bi bi-info-circle" style="color: white;"></i> Información</a></li> 
+            -->      
         </ul>
 
         <div class="each-category" id="genre-sections">

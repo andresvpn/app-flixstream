@@ -171,7 +171,12 @@ $creditsUrl = "https://api.themoviedb.org/3/movie/$imb/credits?api_key=$apiKey";
         }
         
         .server-item.focused {
-            background-color: rgba(32, 191, 107, 0.2) !important;
+            background-color: rgba(32, 191, 107, 0.3) !important;
+            transform: scale(1.02);
+        }
+        
+        .modal-close.focused {
+            background-color: rgba(32, 191, 107, 0.3) !important;
         }
         
         /* Asegurar que los botones sean fácilmente seleccionables */
@@ -188,6 +193,18 @@ $creditsUrl = "https://api.themoviedb.org/3/movie/$imb/credits?api_key=$apiKey";
         
         .modal-content {
             padding: 24px;
+        }
+        
+        /* Scroll personalizado para servidores */
+        .servers-scroll {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        /* Ocultar scrollbar pero mantener funcionalidad */
+        .servers-scroll::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
         }
     </style>
 
@@ -230,8 +247,10 @@ $creditsUrl = "https://api.themoviedb.org/3/movie/$imb/credits?api_key=$apiKey";
 <div id="modal1" class="modal grey darken-4">
     <div class="modal-content white-text">
         <h5>Selecciona servidor</h5>
-        <div class="collection" id="servers-container">
-            <!-- Los servidores se cargarán aquí desde el JSON -->
+        <div class="servers-scroll">
+            <div class="collection" id="servers-container">
+                <!-- Los servidores se cargarán aquí desde el JSON -->
+            </div>
         </div>
     </div>
     <div class="modal-footer grey darken-4">
@@ -246,52 +265,50 @@ $creditsUrl = "https://api.themoviedb.org/3/movie/$imb/credits?api_key=$apiKey";
 let currentFocus = null;
 let focusableElements = [];
 let currentServerIndex = -1;
+let isSynopsisExpanded = false;
+let modalInstance = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     M.AutoInit();
     document.getElementById('mainContent').style.display = 'block';
     
-    // Configurar elementos enfocables
-    document.querySelectorAll('.read-more-btn, .modal-trigger, .modal-close, .cast-member').forEach(el => {
-        el.classList.add('focusable');
-        el.setAttribute('tabindex', '0');
+    // Inicializar modal con callbacks
+    modalInstance = M.Modal.init(document.getElementById('modal1'), {
+        onOpenEnd: function() {
+            setTimeout(() => {
+                const servers = document.querySelectorAll('.server-item');
+                if (servers.length > 0) {
+                    setFocus(servers[0]);
+                    currentServerIndex = 0;
+                }
+            }, 100);
+        },
+        onCloseEnd: function() {
+            setFocus(document.getElementById('play-button'));
+        }
     });
     
     loadServers();
     getMovieData();
     initTVNavigation();
-    
-    // Manejar eventos del modal para TV
-    document.querySelectorAll('.modal').forEach(modalEl => {
-        modalEl.addEventListener('modal-open', function() {
-            // Enfocar el primer servidor al abrir el modal
-            setTimeout(() => {
-                const firstServer = document.querySelector('.server-item');
-                if (firstServer) setFocus(firstServer);
-            }, 500);
-        });
-    });
 });
 
-// Inicializar navegación por teclado
 function initTVNavigation() {
-    // Elementos enfocables
-    focusableElements = Array.from(document.querySelectorAll('.focusable, [tabindex], a, button, input, select, textarea'));
+    updateFocusableElements();
     
-    // Asignar tabindex si no lo tienen
-    focusableElements.forEach(el => {
-        if (!el.hasAttribute('tabindex')) {
-            el.setAttribute('tabindex', '-1');
-        }
-    });
-    
-    // Manejar eventos de teclado
     document.addEventListener('keydown', handleKeyDown);
     
-    // Enfocar el primer elemento al cargar
     if (focusableElements.length > 0) {
         setFocus(focusableElements[0]);
     }
+}
+
+function updateFocusableElements() {
+    focusableElements = Array.from(document.querySelectorAll(
+        '#play-button, #read-more-btn, .server-item, .modal-close'
+    ));
+    
+    focusableElements.forEach(el => el.setAttribute('tabindex', '0'));
 }
 
 function handleKeyDown(e) {
@@ -299,79 +316,111 @@ function handleKeyDown(e) {
     
     const currentIndex = focusableElements.indexOf(currentFocus);
     let nextIndex = currentIndex;
+    let isInModal = document.querySelector('.modal.open');
     
     switch(e.key) {
         case 'ArrowUp':
-            // Buscar elemento arriba (lógica simplificada)
-            nextIndex = Math.max(0, currentIndex - 1);
+            if (isInModal) {
+                if (currentFocus.classList.contains('modal-close')) {
+                    const servers = document.querySelectorAll('.server-item');
+                    if (servers.length > 0) {
+                        nextIndex = focusableElements.indexOf(servers[servers.length - 1]);
+                    }
+                } else {
+                    nextIndex = Math.max(0, currentIndex - 1);
+                }
+            }
             break;
+            
         case 'ArrowDown':
-            // Buscar elemento abajo
-            nextIndex = Math.min(focusableElements.length - 1, currentIndex + 1);
+            if (isInModal) {
+                if (currentFocus.classList.contains('server-item')) {
+                    const servers = document.querySelectorAll('.server-item');
+                    const lastServerIndex = focusableElements.indexOf(servers[servers.length - 1]);
+                    
+                    if (currentIndex >= lastServerIndex) {
+                        nextIndex = focusableElements.indexOf(document.querySelector('.modal-close'));
+                    } else {
+                        nextIndex = currentIndex + 1;
+                    }
+                }
+            } else {
+                if (currentFocus.id === 'play-button') {
+                    nextIndex = focusableElements.indexOf(document.getElementById('read-more-btn'));
+                }
+            }
             break;
+            
         case 'ArrowLeft':
-            // Navegación horizontal (para el reparto)
-            if (currentFocus.classList.contains('cast-member')) {
-                const row = currentFocus.parentElement;
-                const members = Array.from(row.children);
-                const memberIndex = members.indexOf(currentFocus);
-                if (memberIndex > 0) {
-                    nextIndex = focusableElements.indexOf(members[memberIndex - 1]);
-                }
-            } else {
-                nextIndex = Math.max(0, currentIndex - 1);
-            }
-            break;
         case 'ArrowRight':
-            // Navegación horizontal (para el reparto)
-            if (currentFocus.classList.contains('cast-member')) {
-                const row = currentFocus.parentElement;
-                const members = Array.from(row.children);
-                const memberIndex = members.indexOf(currentFocus);
-                if (memberIndex < members.length - 1) {
-                    nextIndex = focusableElements.indexOf(members[memberIndex + 1]);
-                }
-            } else {
-                nextIndex = Math.min(focusableElements.length - 1, currentIndex + 1);
+            if (!isInModal) {
+                nextIndex = Math.max(0, Math.min(focusableElements.length - 1, currentIndex + (e.key === 'ArrowRight' ? 1 : -1)));
             }
             break;
+            
         case 'Enter':
-            // Simular click
-            if (currentFocus.tagName === 'A' || currentFocus.tagName === 'BUTTON') {
-                currentFocus.click();
+            if (currentFocus.id === 'read-more-btn') {
+                toggleSynopsis();
+            } else if (currentFocus.classList.contains('server-item')) {
+                window.location.href = currentFocus.href;
+            } else if (currentFocus.classList.contains('modal-close')) {
+                modalInstance.close();
+            } else if (currentFocus.id === 'play-button') {
+                modalInstance.open();
             }
             break;
+            
         case 'Backspace':
-            // Cerrar modal si está abierto
-            if (document.querySelector('.modal.open')) {
-                M.Modal.getInstance(document.querySelector('.modal.open')).close();
-                setFocus(document.getElementById('play-button'));
+            if (isInModal) {
+                modalInstance.close();
             }
             break;
+            
         default:
             return;
     }
     
-    if (nextIndex !== currentIndex) {
+    if (nextIndex !== currentIndex && nextIndex >= 0 && nextIndex < focusableElements.length) {
         e.preventDefault();
         setFocus(focusableElements[nextIndex]);
     }
 }
 
 function setFocus(element) {
+    if (!element) return;
+    
     if (currentFocus) {
         currentFocus.classList.remove('focused');
     }
     
     currentFocus = element;
     currentFocus.classList.add('focused');
-    currentFocus.focus();
     
-    // Scroll suave al elemento
-    currentFocus.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-    });
+    if (element.classList.contains('server-item')) {
+        const container = document.querySelector('.servers-scroll');
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        
+        if (elementRect.top < containerRect.top) {
+            container.scrollTop += elementRect.top - containerRect.top - 20;
+        } else if (elementRect.bottom > containerRect.bottom) {
+            container.scrollTop += elementRect.bottom - containerRect.bottom + 20;
+        }
+    }
+    
+    currentFocus.focus();
+}
+
+function toggleSynopsis() {
+    const fullEl = document.getElementById('movie-synopsis-full');
+    const shortEl = document.getElementById('movie-synopsis-short');
+    const btn = document.getElementById('read-more-btn');
+    
+    isSynopsisExpanded = !isSynopsisExpanded;
+    
+    fullEl.style.display = isSynopsisExpanded ? 'block' : 'none';
+    shortEl.style.display = isSynopsisExpanded ? 'none' : 'block';
+    btn.textContent = isSynopsisExpanded ? 'Leer menos' : 'Leer más';
 }
 
 function loadServers() {
@@ -389,7 +438,6 @@ function loadServers() {
             serverElement.setAttribute('tabindex', '0');
             serverElement.dataset.index = index;
             
-            // Manejar foco para navegación TV
             serverElement.addEventListener('focus', () => {
                 currentServerIndex = index;
             });
@@ -404,8 +452,7 @@ function loadServers() {
         serversContainer.appendChild(noServerElement);
     }
     
-    // Actualizar elementos enfocables
-    focusableElements = Array.from(document.querySelectorAll('.focusable, [tabindex], a, button, input, select, textarea'));
+    updateFocusableElements();
 }
 
 async function getMovieData() {
@@ -419,16 +466,9 @@ async function getMovieData() {
         const creditsData = await creditsResponse.json();
         
         if (movieData?.title) {
-            // Configurar título
             document.getElementById('movie-title').textContent = movieData.title;
-            
-            // Configurar sinopsis
             setupSynopsis(movieData.overview || 'Sin sinopsis disponible');
-            
-            // Configurar imágenes
             setupImages(movieData);
-            
-            // Configurar reparto
             setupCast(creditsData.cast?.slice(0, 6) || []);
         }
     } catch (error) {
@@ -446,12 +486,7 @@ function setupSynopsis(synopsis) {
     
     if (synopsis.length > 200) {
         shortEl.textContent = synopsis.substring(0, 200) + '...';
-        btn.onclick = () => {
-            const isFull = fullEl.style.display === 'block';
-            fullEl.style.display = isFull ? 'none' : 'block';
-            shortEl.style.display = isFull ? 'block' : 'none';
-            btn.textContent = isFull ? 'Leer más' : 'Leer menos';
-        };
+        btn.style.display = 'inline-block';
     } else {
         shortEl.textContent = synopsis;
         btn.style.display = 'none';
@@ -462,12 +497,10 @@ function setupImages(movieData) {
     const poster = document.getElementById('movie-poster');
     const bg = document.querySelector('.bg-fondo');
     
-    // Configurar póster principal
     poster.src = movieData.poster_path 
         ? `https://image.tmdb.org/t/p/w200${movieData.poster_path}`
         : 'https://placehold.co/200x300?text=No+Poster';
     
-    // Configurar imagen de fondo
     if (movieData.backdrop_path) {
         bg.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(https://image.tmdb.org/t/p/w1280${movieData.backdrop_path})`;
     } else {
@@ -481,11 +514,9 @@ function setupCast(cast) {
     row1.innerHTML = '';
     row2.innerHTML = '';
     
-    // Dividir el reparto en 2 filas de 3
     cast.forEach((person, index) => {
         const member = document.createElement('div');
-        member.className = 'cast-member focusable';
-        member.setAttribute('tabindex', '0');
+        member.className = 'cast-member';
         
         const imgContainer = document.createElement('div');
         imgContainer.className = 'cast-img-container';
@@ -507,16 +538,12 @@ function setupCast(cast) {
         member.appendChild(imgContainer);
         member.appendChild(name);
         
-        // Asignar a fila 1 (0-2) o fila 2 (3-5)
         if (index < 3) {
             row1.appendChild(member);
         } else {
             row2.appendChild(member);
         }
     });
-    
-    // Actualizar elementos enfocables después de cargar el reparto
-    focusableElements = Array.from(document.querySelectorAll('.focusable, [tabindex], a, button, input, select, textarea'));
 }
 </script>
 </body>
