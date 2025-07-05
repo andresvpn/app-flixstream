@@ -250,7 +250,7 @@ $moviesPerPage = 48;
                 </div>
             </li>
             <li><a id="menu-buscador" href="/search.php" tabindex="0"><i class="bi bi-search"></i> Buscar Película</a></li>
-            <li><a id="menu-item" href="/version.php" tabindex="0"><i class="bi bi-info-circle" style="color: white;"></i> Información</a></li>       
+            <li><a id="menu-item" href="https://t.me/FlixStream_Oficial/" tabindex="0"><i class="bi bi-telegram" style="color: white;"></i> Canal Oficial</a></li>       
         </ul>
 
         <div class="each-category" id="genre-sections">
