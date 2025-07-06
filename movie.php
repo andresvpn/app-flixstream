@@ -1,7 +1,50 @@
 <?php
 // Obtener el ID de la película (imb) desde la URL
 $imb = $_GET['imb'] ?? null;
+// Ruta del archivo
+$archivo = 'db.json';
 
+// Crear archivo si no existe
+if (!file_exists($archivo)) {
+    file_put_contents($archivo, '{}'); // JSON vacío
+    chmod($archivo, 0666);
+}
+
+// Inicializar variables
+$estadisticas = [];
+
+if ($imb !== null) {
+    $fp = fopen($archivo, 'c+');
+    if (flock($fp, LOCK_EX)) {
+        $contenido = stream_get_contents($fp);
+        $data = json_decode($contenido, true) ?: [];
+
+        // Si no existe el ID, crear estructura base
+        if (!isset($data[$imb])) {
+            $data[$imb] = [
+                "views" => 0,
+                "stars" => 0,
+                "likes" => 0,
+                "dislikes" => 0,
+                "comments" => 0
+            ];
+        }
+
+        // Aumentar solo las vistas automáticamente
+        $data[$imb]["views"]++;
+
+        // Guardar stats actuales para mostrar en HTML si se quiere
+        $estadisticas = $data[$imb];
+
+        // Escribir el archivo actualizado
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($data, JSON_PRETTY_PRINT));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+    }
+    fclose($fp);
+}
 // Leer la base de datos JSON local
 $moviesData = file_get_contents('movies.json');
 $movies = json_decode($moviesData, true)['movies'];
